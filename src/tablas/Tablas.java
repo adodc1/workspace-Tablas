@@ -5,6 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 public class Tablas extends JPanel {
@@ -16,6 +17,7 @@ public class Tablas extends JPanel {
 
 		final MiModelo modelo = new MiModelo();
 		final JTable tabla = new JTable(modelo);
+		tabla.setDefaultRenderer(Object.class, new MiRender());
 
 		tabla.addMouseListener(new MouseAdapter() {
 
@@ -39,13 +41,15 @@ public class Tablas extends JPanel {
 		modelo.addColumn("gamma");
 		modelo.addColumn("lambda");
 
-		Object[] fila = new Object[4];
-		fila[0] = "dato columna 1";
-		fila[1] = "dato columna 2";
-		fila[2] = "dato columna 3";
-		fila[3] = "dato columna 4";
+		for (int i = 0; i < 20; i++) {
+			Object[] fila = new Object[4];
+			fila[0] = "dato columna 1";
+			fila[1] = "dato columna 2";
+			fila[2] = "dato columna 3";
+			fila[3] = true;
+			modelo.addRow(fila); // Añade una fila al final
+		}
 
-		modelo.addRow(fila); // Añade una fila al final
 		modelo.setValueAt("nuevo valor", 0, 1); // Cambia el valor de la fila 1, columna 2.
 //		modelo.removeRow(0); // Borra la primera fila
 
@@ -61,19 +65,6 @@ public class Tablas extends JPanel {
 class MiModelo extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Primera columna Boolean, segunda Integer y el resto Object
-	 * 
-	 * @return
-	 */
-	public Class<?> getColumnClass(int columna) {
-		if (columna == 0)
-			return (Class<?>) Boolean.class;
-		if (columna == 1)
-			return Integer.class;
-		return Object.class;
-	}
-
 	public boolean isCellEditable(int row, int column) {
 // Aquí devolvemos true o false según queramos que una celda
 // identificada por fila,columna (row,column), sea o no editable
@@ -82,5 +73,43 @@ class MiModelo extends DefaultTableModel {
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+
+		if (columnIndex == 3) {
+			return Boolean.class;
+		}
+		return super.getColumnClass(columnIndex);
+	}
+}
+
+class MiRender extends DefaultTableCellRenderer {
+	private static final long serialVersionUID = 1L;
+
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+		
+		super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		
+		if (row == 0) {
+			this.setOpaque(true);
+			this.setBackground(Color.LIGHT_GRAY);
+			this.setForeground(Color.BLACK);
+			
+		} else if(isSelected) {	
+			this.setOpaque(true);
+			this.setBackground(Color.BLUE);
+			this.setForeground(Color.WHITE);
+			
+		} else {
+			// Restaurar los valores por defecto
+			this.setOpaque(true);
+			this.setBackground(Color.WHITE);
+			this.setForeground(Color.BLACK);
+		}
+
+		return this;
 	}
 }
