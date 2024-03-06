@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 public class Tablas extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -19,6 +20,9 @@ public class Tablas extends JPanel {
 		final JTable tabla = new JTable(modelo);
 		tabla.setDefaultRenderer(Object.class, new MiRender());
 
+		JTableHeader header = tabla.getTableHeader();
+		header.addMouseListener(new TableHeaderMouseListener(tabla));
+
 		tabla.addMouseListener(new MouseAdapter() {
 
 			public void mouseClicked(MouseEvent e) {
@@ -26,7 +30,7 @@ public class Tablas extends JPanel {
 				int fila = tabla.rowAtPoint(e.getPoint());
 				int columna = tabla.columnAtPoint(e.getPoint());
 
-				if ((fila > -1) && (columna > -1)) {
+				if ((fila >= 0) && (columna >= 0)) {
 					System.out.println(modelo.getValueAt(fila, columna));
 				}
 			}
@@ -48,10 +52,9 @@ public class Tablas extends JPanel {
 			fila[2] = "dato columna 3";
 			fila[3] = true;
 			modelo.addRow(fila); // Añade una fila al final
+			modelo.setValueAt("nuevo valor", 0, 1); // Cambia el valor de la fila 1, columna 2.
 		}
-
-		modelo.setValueAt("nuevo valor", 0, 1); // Cambia el valor de la fila 1, columna 2.
-//		modelo.removeRow(0); // Borra la primera fila
+		modelo.removeRow(0); // Borra la primera fila
 
 		scroll.setPreferredSize(tabla.getPreferredScrollableViewportSize());
 
@@ -68,7 +71,7 @@ class MiModelo extends DefaultTableModel {
 	public boolean isCellEditable(int row, int column) {
 // Aquí devolvemos true o false según queramos que una celda
 // identificada por fila,columna (row,column), sea o no editable
-		if (column == 3) {
+		if (column == 2) {
 			return true;
 		} else {
 			return false;
@@ -90,19 +93,19 @@ class MiRender extends DefaultTableCellRenderer {
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 			int row, int column) {
-		
+
 		super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-		
-		if (row == 0) {
+
+		if (row == 10 && !isSelected) {
 			this.setOpaque(true);
 			this.setBackground(Color.LIGHT_GRAY);
 			this.setForeground(Color.BLACK);
-			
-		} else if(isSelected) {	
+
+		} else if (isSelected) {
 			this.setOpaque(true);
 			this.setBackground(Color.BLUE);
 			this.setForeground(Color.WHITE);
-			
+
 		} else {
 			// Restaurar los valores por defecto
 			this.setOpaque(true);
@@ -111,5 +114,21 @@ class MiRender extends DefaultTableCellRenderer {
 		}
 
 		return this;
+	}
+}
+
+class TableHeaderMouseListener extends MouseAdapter {
+
+	private JTable table;
+
+	public TableHeaderMouseListener(JTable table) {
+		this.table = table;
+	}
+
+	public void mouseClicked(MouseEvent event) {
+		int columna = table.columnAtPoint(event.getPoint());
+		Object obj = table.getColumnModel().getColumn(columna).getHeaderValue();
+		System.out.println("Column header #" + columna + " is clicked");
+		System.out.println(obj.toString());
 	}
 }
