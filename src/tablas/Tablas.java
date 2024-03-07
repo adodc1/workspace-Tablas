@@ -1,6 +1,8 @@
 package tablas;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -14,32 +16,35 @@ public class Tablas extends JPanel {
 
 	public Tablas() {
 
-		setLayout(new GridLayout(1, 3));
+		this.setLayout(new GridLayout(4, 1));
 
+		/*
+		 * Cambiar de color las celdas.
+		 */
 		final MiModelo modelo = new MiModelo();
 		final JTable tabla = new JTable(modelo);
 		tabla.setDefaultRenderer(Object.class, new MiRender());
 
+		/*
+		 * Activar MouseClick sobre la cabecera de las columnas.
+		 */
 		JTableHeader header = tabla.getTableHeader();
 		header.addMouseListener(new TableHeaderMouseListener(tabla));
 
-		tabla.addMouseListener(new MouseAdapter() {
+		/*
+		 * Activar MouseClick sobre la tabla
+		 */
+		tabla.addMouseListener(new TableMouseListener(tabla));
 
-			public void mouseClicked(MouseEvent e) {
-
-				int fila = tabla.rowAtPoint(e.getPoint());
-				int columna = tabla.columnAtPoint(e.getPoint());
-
-				if ((fila >= 0) && (columna >= 0)) {
-					System.out.println(modelo.getValueAt(fila, columna));
-				}
-			}
-
-		});
-
+		/*
+		 * Asignar un scroll a la tabla.
+		 */
 		JScrollPane scroll = new JScrollPane();
 		scroll.setViewportView(tabla);
 
+		/*
+		 * Cargar los datos de la tabla.
+		 */
 		modelo.addColumn("alfa");
 		modelo.addColumn("beta");
 		modelo.addColumn("gamma");
@@ -47,13 +52,13 @@ public class Tablas extends JPanel {
 
 		for (int i = 0; i < 20; i++) {
 			Object[] fila = new Object[4];
-			fila[0] = "dato columna 1";
-			fila[1] = "dato columna 2";
-			fila[2] = "dato columna 3";
+			fila[0] = "dato columna " + Math.round(Math.random() * 99);
+			fila[1] = "dato columna " + Math.round(Math.random() * 99);
+			fila[2] = "dato columna " + Math.round(Math.random() * 99);
 			fila[3] = true;
 			modelo.addRow(fila); // Añade una fila al final
-			modelo.setValueAt("nuevo valor", 0, 1); // Cambia el valor de la fila 1, columna 2.
 		}
+		modelo.setValueAt("nuevo valor", 0, 1); // Cambia el valor de la fila 1, columna 2.
 		modelo.removeRow(0); // Borra la primera fila
 
 		scroll.setPreferredSize(tabla.getPreferredScrollableViewportSize());
@@ -61,6 +66,28 @@ public class Tablas extends JPanel {
 		JPanel topPanel = new JPanel(new BorderLayout());
 		topPanel.add(scroll, BorderLayout.CENTER);
 		add(topPanel);
+
+		Button but = new Button("Insertar");
+		but.addActionListener(new ButtonInsertarListener(tabla));
+
+		JPanel topPanel2 = new JPanel(new BorderLayout());
+		topPanel2.add(but, BorderLayout.CENTER);
+		add(topPanel2);
+
+		Button but2 = new Button("Borrar");
+		but2.addActionListener(new ButtonBorrarListener(tabla));
+
+		JPanel topPanel3 = new JPanel(new BorderLayout());
+		topPanel3.add(but2, BorderLayout.CENTER);
+		add(topPanel3);
+
+		Button but3 = new Button("Mover Arriba");
+		but3.addActionListener(new ButtonMoverListener(tabla));
+
+		JPanel topPanel4 = new JPanel(new BorderLayout());
+		topPanel4.add(but3, BorderLayout.CENTER);
+		add(topPanel4);
+
 	}
 
 }
@@ -68,6 +95,9 @@ public class Tablas extends JPanel {
 class MiModelo extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Declara una delda como editable.
+	 */
 	public boolean isCellEditable(int row, int column) {
 // Aquí devolvemos true o false según queramos que una celda
 // identificada por fila,columna (row,column), sea o no editable
@@ -78,6 +108,10 @@ class MiModelo extends DefaultTableModel {
 		}
 	}
 
+	/**
+	 * Cambiar el tipo de dato de una columna. En caso de que el dato existente no
+	 * coincida con el tipo de dato que queremos poner puede generear un error.
+	 */
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
 
@@ -117,6 +151,24 @@ class MiRender extends DefaultTableCellRenderer {
 	}
 }
 
+class TableMouseListener extends MouseAdapter {
+
+	private JTable table;
+
+	public TableMouseListener(JTable table) {
+		this.table = table;
+	}
+
+	public void mouseClicked(MouseEvent e) {
+		int fila = table.rowAtPoint(e.getPoint());
+		int columna = table.columnAtPoint(e.getPoint());
+
+		if ((fila >= 0) && (columna >= 0)) {
+			System.out.println(table.getModel().getValueAt(fila, columna));
+		}
+	}
+}
+
 class TableHeaderMouseListener extends MouseAdapter {
 
 	private JTable table;
@@ -130,5 +182,69 @@ class TableHeaderMouseListener extends MouseAdapter {
 		Object obj = table.getColumnModel().getColumn(columna).getHeaderValue();
 		System.out.println("Column header #" + columna + " is clicked");
 		System.out.println(obj.toString());
+	}
+}
+
+class ButtonInsertarListener implements ActionListener {
+
+	private final JTable table;
+	private final MiModelo modelo;
+
+	public ButtonInsertarListener(JTable table) {
+		super();
+		this.table = table;
+		this.modelo = (MiModelo) table.getModel();
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		Object[] fila = new Object[4];
+		fila[0] = "dato columna " + Math.round(Math.random() * 99);
+		fila[1] = "dato columna " + Math.round(Math.random() * 99);
+		fila[2] = "dato columna " + Math.round(Math.random() * 99);
+		fila[3] = true;
+		modelo.addRow(fila); // Añade una fila al final
+		table.clearSelection();
+	}
+
+}
+
+class ButtonBorrarListener implements ActionListener {
+
+	private final JTable table;
+	private final MiModelo model;
+
+	public ButtonBorrarListener(JTable table) {
+		super();
+		this.table = table;
+		this.model = (MiModelo) table.getModel();
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		int y = this.table.getSelectedRow();
+		if (y > 0 && y < this.table.getRowCount()) {
+			this.model.removeRow(y);
+			table.clearSelection();
+		}
+	}
+}
+
+class ButtonMoverListener implements ActionListener {
+
+	private final JTable table;
+	private final MiModelo model;
+
+	public ButtonMoverListener(JTable table) {
+		super();
+		this.table = table;
+		this.model = (MiModelo) table.getModel();
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		int y = this.table.getSelectedRow();
+		int r = this.table.getSelectedRowCount() - 1;
+		if (y > 0 && y < this.table.getRowCount() - 1) {
+			this.model.moveRow(y, y + r, y - 1);
+			this.table.setRowSelectionInterval(y - 1, y - 1 + r);
+		}
 	}
 }
