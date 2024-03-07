@@ -221,8 +221,11 @@ class ButtonBorrarListener implements ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		int y = this.table.getSelectedRow();
-		if (y > 0 && y < this.table.getRowCount()) {
-			this.model.removeRow(y);
+		int r = this.table.getSelectedRowCount();
+		if (y >= 0 && y < this.table.getRowCount()) {
+			for (int i = 0; i < r; i++) {
+				this.model.removeRow(y);
+			}
 			table.clearSelection();
 		}
 	}
@@ -242,7 +245,7 @@ class ButtonMoverListener implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		int y = this.table.getSelectedRow();
 		int r = this.table.getSelectedRowCount() - 1;
-		if (y > 0 && y < this.table.getRowCount() - 1) {
+		if (y > 0 && y < this.table.getRowCount()) {
 			this.model.moveRow(y, y + r, y - 1);
 			this.table.setRowSelectionInterval(y - 1, y - 1 + r);
 		}
